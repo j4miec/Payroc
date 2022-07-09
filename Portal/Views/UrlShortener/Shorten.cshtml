@@ -1,0 +1,39 @@
+﻿@model UrlShortener.Models.ShortenedUrl
+
+<h2 class="d-flex justify-content-center">Shorten url</h2>
+
+@if (TempData["CreationDenied"] != null)
+{
+    <div class="alert alert-warning text-center" role="alert">
+        @TempData["CreationDenied"]
+    </div>
+}
+else
+{
+    <br/>
+    <br/>
+}
+
+<div class="row">
+    <div class="d-flex justify-content-center">
+        <section>
+            <form asp-controller="UrlShortener" asp-action="Shorten" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label asp-for="Url" class="col-md-2 control-label"></label>
+                    <div class="col-md-12">
+                        <input asp-for="Url" type="text" />
+                        <br/>
+                        <span asp-validation-for="Url" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <br/>
+                <div class="form-group">
+                    <div class="float-end">
+                        <button type="submit" class="btn btn-primary">Log in</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
