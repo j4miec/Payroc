@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Web;
+using Microsoft.AspNetCore.Mvc;
 using UrlShortener.Models;
 using UrlShortener.Shortener;
 
@@ -18,40 +19,45 @@ namespace Portal.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Shorten(ShortenedUrl su)
+        [HttpPost]
+        public async Task<IActionResult> Shorten(string url)
         {
             if (ModelState.IsValid)
             {
-                var result = await _shortenerService.Shorten(su.Url);
+                var result = await _shortenerService.Shorten(url);
 
-                if (result)
+                if (result != null)
                 {
-                    return RedirectToAction(nameof(Created), su);
+                    return RedirectToAction(nameof(Created), result);
                 }
 
                 TempData["CreationDenied"] ??= "Something went wrong with the creation.";
             }
 
             TempData["CreationDenied"] ??= "A validation error occurred. Please check your input";
-            return View(su);
+            return View(url);
         }
 
         public IActionResult Created(ShortenedUrl su)
         {
+            var request = HttpContext.Request;
+            var host = request.Host.ToUriComponent();
+            su.ShortenedKey = $"{request.Scheme}://{host}/Go/{su.ShortenedKey}";
             return View(su);
         }
 
+        [Route("go/{urlKey}")]
         public async Task<IActionResult> Follow(string urlKey)
         {
             var result = await _shortenerService.GetUrl(urlKey);
 
             if (!string.IsNullOrEmpty(result))
             {
-                return Redirect(result);
+                var decoded = HttpUtility.UrlDecode(result);
+                return Redirect(decoded);
             }
 
-            TempData["RedirectFailed"] ??= "The redirect failed. The shortening may not exist, or may have expired";
-            return View(result);
+            return View();
         }
     }
 }

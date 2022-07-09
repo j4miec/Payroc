@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using UrlShortener.Contexts;
+using UrlShortener.Shortener;
+
 namespace Portal
 {
     public class Program
@@ -6,10 +10,24 @@ namespace Portal
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddDbContext<ShortenerContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("Shortener"));
+            });
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<IShortenerService, ShortenerService>();
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                var context = services.GetRequiredService<ShortenerContext>();
+                context.Database.EnsureCreated();
+            }
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

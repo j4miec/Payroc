@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 using UrlShortener.Contexts;
+using UrlShortener.Models;
 
 namespace UrlShortener.Shortener
 {
@@ -16,14 +14,47 @@ namespace UrlShortener.Shortener
             _context = context;
         }
 
-        public Task<bool> Shorten(string url)
+        public async Task<ShortenedUrl?> Shorten(string url)
         {
-            throw new NotImplementedException();
+            string key;
+            do
+            {
+                var salt = new byte[128 / 8];
+
+                using (var rngCsp = RandomNumberGenerator.Create())
+                {
+                    rngCsp.GetBytes(salt);
+                }
+
+                var hash = Convert.ToBase64String(salt);
+
+                key = hash[..10].Replace('/', '+');
+            } while (await _context.ShortenedUrls.AnyAsync(su => su.ShortenedKey == key));
+
+            var shortened = new ShortenedUrl
+            {
+                Url = url,
+                ShortenedKey = key,
+                Created = DateTime.Now
+            };
+
+            try
+            {
+                await _context.ShortenedUrls.AddAsync(shortened);
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                return null;
+            }
+
+            return shortened;
         }
 
-        public Task<string> GetUrl(string shortKey)
+        public async Task<string?> GetUrl(string shortKey)
         {
-            throw new NotImplementedException();
+            var su = await _context.ShortenedUrls.SingleOrDefaultAsync(su => su.ShortenedKey == shortKey);
+            return su?.Url;
         }
     }
 }

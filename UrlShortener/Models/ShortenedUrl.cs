@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace UrlShortener.Models
 {
     [Index(nameof(ShortenedKey), IsUnique = true)]
-    public class ShortenedUrl : IValidatableObject
+    public class ShortenedUrl
     {
         public Guid ID { get; set; }
 
@@ -13,14 +13,9 @@ namespace UrlShortener.Models
 
         [Required]
         [MaxLength(10)]
+        [Display(Name = "Shortened url")]
         public string ShortenedKey { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            if (Url == "test")
-            {
-                yield return new ValidationResult("boo");
-            }
-        }
+        public DateTime Created { get; set; }
     }
 }

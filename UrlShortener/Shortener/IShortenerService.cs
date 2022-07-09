@@ -1,9 +1,11 @@
-﻿namespace UrlShortener.Shortener
+﻿using UrlShortener.Models;
+
+namespace UrlShortener.Shortener
 {
     public interface IShortenerService
     {
-        public Task<bool> Shorten(string url);
+        public Task<ShortenedUrl?> Shorten(string url);
 
-        public Task<string> GetUrl(string shortKey);
+        public Task<string?> GetUrl(string shortKey);
     }
 }
